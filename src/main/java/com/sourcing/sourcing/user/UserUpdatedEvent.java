@@ -5,20 +5,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sourcing.sourcing.event.Event;
 import lombok.Getter;
 
-public class UserCreatedEvent implements Event {
+public class UserUpdatedEvent implements Event {
     private final String userId;
     @Getter
-    private final String username;
+    private final String newUsername;
 
     @JsonCreator
-    public UserCreatedEvent(@JsonProperty("userId") String userId, @JsonProperty("username") String username) {
+    public UserUpdatedEvent(@JsonProperty("userId") String userId, @JsonProperty("newUsername") String newUsername) {
         this.userId = userId;
-        this.username = username;
+        this.newUsername = newUsername;
     }
 
     @Override
     public String getType() {
-        return "UserCreatedEvent";
+        return "UserUpdatedEvent";
     }
 
     @Override
@@ -26,4 +26,3 @@ public class UserCreatedEvent implements Event {
         return userId;
     }
 }
-
