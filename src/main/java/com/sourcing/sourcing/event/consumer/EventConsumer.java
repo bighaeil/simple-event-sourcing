@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,6 +25,7 @@ public class EventConsumer {
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "events", groupId = "event-group")
+    @Transactional
     public void consume(Event event) {
         try {
             // 이벤트 저장

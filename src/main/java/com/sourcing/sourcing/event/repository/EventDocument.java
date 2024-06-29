@@ -3,6 +3,7 @@ package com.sourcing.sourcing.event.repository;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
@@ -15,4 +16,6 @@ public class EventDocument {
     private String type;
     private String data;
     private long version;
+    @Version
+    private Long internalVersion;
 }
