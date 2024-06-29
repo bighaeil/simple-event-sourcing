@@ -1,12 +1,16 @@
 package com.sourcing.sourcing.user;
 
 import com.sourcing.sourcing.event.Event;
+import com.sourcing.sourcing.event.UserCreatedEvent;
+import com.sourcing.sourcing.event.UserUpdatedEvent;
+import com.sourcing.sourcing.snapshot.Snapshot;
+import lombok.Getter;
 
-import java.util.List;
-
+@Getter
 public class UserAggregate {
     private String userId;
     private String username;
+    private long version = 0;
 
     public void apply(Event event) {
         if (event instanceof UserCreatedEvent) {
@@ -19,14 +23,16 @@ public class UserAggregate {
                 this.username = userUpdatedEvent.getNewUsername();
             }
         }
-        // 다른 이벤트 타입에 대한 처리를 추가할 수 있습니다.
+        this.version = event.getVersion(); // 이벤트의 버전을 적용합니다.
     }
 
-    public String getUserId() {
-        return userId;
+    public Snapshot createSnapshot() {
+        return new Snapshot(userId, username, version);
     }
 
-    public String getUsername() {
-        return username;
+    public void restoreFromSnapshot(Snapshot snapshot) {
+        this.userId = snapshot.getUserId();
+        this.username = snapshot.getUsername();
+        this.version = snapshot.getVersion();
     }
 }

@@ -14,4 +14,5 @@ public class EventDocument {
     private String userId;
     private String type;
     private String data;
+    private long version;
 }

@@ -1,12 +1,14 @@
 package com.sourcing.sourcing.user;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sourcing.sourcing.event.Event;
+import com.sourcing.sourcing.event.UserCreatedEvent;
+import com.sourcing.sourcing.event.UserUpdatedEvent;
 import com.sourcing.sourcing.event.producer.EventProducer;
 import com.sourcing.sourcing.event.repository.EventDocument;
 import com.sourcing.sourcing.event.repository.EventRepository;
+import com.sourcing.sourcing.snapshot.Snapshot;
+import com.sourcing.sourcing.snapshot.SnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,25 +22,47 @@ import java.util.List;
 public class UserService {
     private final EventProducer eventProducer;
     private final EventRepository eventRepository;
+    private final SnapshotRepository snapshotRepository;
     private final ObjectMapper objectMapper;
 
     public void createUser(String userId, String username) {
-        UserCreatedEvent event = new UserCreatedEvent(userId, username);
-        eventProducer.produceEvent(event);
+        long version = getNextVersion(userId);
+        UserCreatedEvent event = new UserCreatedEvent(userId, username, version);
+        handleEvent(event);
     }
 
     public void updateUser(String userId, String newUsername) {
-        UserUpdatedEvent event = new UserUpdatedEvent(userId, newUsername);
+        long version = getNextVersion(userId);
+        UserUpdatedEvent event = new UserUpdatedEvent(userId, newUsername, version);
+        handleEvent(event);
+    }
+
+    private long getNextVersion(String userId) {
+        List<EventDocument> events = eventRepository.findByUserId(userId);
+        if (events.isEmpty()) {
+            return 1;
+        } else {
+            return events.get(events.size() - 1).getVersion() + 1;
+        }
+    }
+
+    private void handleEvent(Event event) {
         eventProducer.produceEvent(event);
     }
 
     public UserAggregate getUserAggregate(String userId) {
-        List<EventDocument> events = eventRepository.findByUserId(userId);
+        Snapshot latestSnapshot = snapshotRepository.findFirstByUserIdOrderByVersionDesc(userId);
         UserAggregate userAggregate = new UserAggregate();
+        if (latestSnapshot != null) {
+            userAggregate.restoreFromSnapshot(latestSnapshot);
+        }
 
-        for (EventDocument eventDocument: events) {
-            Event event = deserializeEvent(eventDocument);
-            userAggregate.apply(event);
+        List<EventDocument> events = eventRepository.findByUserId(userId);
+        for (EventDocument eventDoc : events) {
+            Event event = deserializeEvent(eventDoc);
+            if (event.getVersion() > userAggregate.getVersion()) {
+                userAggregate.apply(event);
+            }
         }
 
         return userAggregate;

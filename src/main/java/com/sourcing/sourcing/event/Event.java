@@ -2,8 +2,6 @@ package com.sourcing.sourcing.event;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.sourcing.sourcing.user.UserCreatedEvent;
-import com.sourcing.sourcing.user.UserUpdatedEvent;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -17,4 +15,5 @@ import com.sourcing.sourcing.user.UserUpdatedEvent;
 public interface Event {
     String getType();
     String getUserId();
+    long getVersion();
 }
