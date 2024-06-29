@@ -27,6 +27,11 @@ public class UserService {
         eventProducer.produceEvent(event);
     }
 
+    public void updateUser(String userId, String newUsername) {
+        UserUpdatedEvent event = new UserUpdatedEvent(userId, newUsername);
+        eventProducer.produceEvent(event);
+    }
+
     public UserAggregate getUserAggregate(String userId) {
         List<EventDocument> events = eventRepository.findByUserId(userId);
         UserAggregate userAggregate = new UserAggregate();

@@ -5,9 +5,11 @@ import com.sourcing.sourcing.event.repository.EventDocument;
 import com.sourcing.sourcing.event.repository.EventRepository;
 import com.sourcing.sourcing.event.Event;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventConsumer {
@@ -24,7 +26,7 @@ public class EventConsumer {
 
             eventRepository.save(document);
         } catch (Exception e) {
-            // 에러 처리
+            log.error(e.getMessage());
         }
     }
 }
