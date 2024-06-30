@@ -20,7 +20,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public UserAggregate getUser(@PathVariable String userId) {
-        return userService.getUserAggregate(userId);
+    public UserDocument getUser(@PathVariable String userId) {
+        return userService.getUser(userId);
     }
 }

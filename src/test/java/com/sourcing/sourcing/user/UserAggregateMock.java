@@ -1,5 +1,7 @@
 package com.sourcing.sourcing.user;
 
+import com.sourcing.sourcing.event.UserAggregate;
+
 public class UserAggregateMock extends UserAggregate {
 
     private UserAggregateMock(String userId, String username) {

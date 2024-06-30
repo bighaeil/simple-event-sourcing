@@ -1,5 +1,6 @@
 package com.sourcing.sourcing.user;
 
+import com.sourcing.sourcing.event.UserAggregate;
 import com.sourcing.sourcing.event.UserCreatedEvent;
 import com.sourcing.sourcing.event.UserCreatedEventMock;
 import org.junit.jupiter.api.Test;

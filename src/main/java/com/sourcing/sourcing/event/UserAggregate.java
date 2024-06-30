@@ -1,8 +1,5 @@
-package com.sourcing.sourcing.user;
+package com.sourcing.sourcing.event;
 
-import com.sourcing.sourcing.event.Event;
-import com.sourcing.sourcing.event.UserCreatedEvent;
-import com.sourcing.sourcing.event.UserUpdatedEvent;
 import com.sourcing.sourcing.snapshot.Snapshot;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -7,7 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
@@ -21,14 +21,14 @@ class UserControllerTest {
     void API_TEST() {
         //given
         String userId = "1";
-        BDDMockito.given(userService.getUserAggregate(userId)).willReturn(
-                UserAggregateMock.create(userId, "test")
+        BDDMockito.given(userService.getUser(userId)).willReturn(
+                UserDocumentMock.create(userId, "test")
         );
 
         //when
-        UserAggregate user = userController.getUser(userId);
+        UserDocument user = userController.getUser(userId);
 
         //then
-        assertEquals(userId, user.getUserId());
+        assertEquals(userId, user.getId());
     }
 }

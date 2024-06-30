@@ -1,8 +1,7 @@
 package com.sourcing.sourcing.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sourcing.sourcing.ConcurrencyTest;
-import com.sourcing.sourcing.event.producer.EventProducer;
+import com.sourcing.sourcing.user.producer.EventProducer;
 import com.sourcing.sourcing.event.repository.EventRepository;
 import com.sourcing.sourcing.snapshot.SnapshotRepository;
 import org.junit.jupiter.api.Test;
@@ -10,8 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {

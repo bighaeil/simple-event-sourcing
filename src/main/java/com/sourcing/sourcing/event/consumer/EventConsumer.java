@@ -1,12 +1,14 @@
 package com.sourcing.sourcing.event.consumer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sourcing.sourcing.event.Event;
+import com.sourcing.sourcing.event.UserAggregate;
+import com.sourcing.sourcing.event.producer.UserEventProducer;
 import com.sourcing.sourcing.event.repository.EventDocument;
 import com.sourcing.sourcing.event.repository.EventRepository;
 import com.sourcing.sourcing.snapshot.Snapshot;
 import com.sourcing.sourcing.snapshot.SnapshotRepository;
-import com.sourcing.sourcing.user.UserAggregate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -21,24 +23,34 @@ import java.util.List;
 public class EventConsumer {
     private final EventRepository eventRepository;
     private final SnapshotRepository snapshotRepository;
+    private final UserEventProducer eventProducer;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "user-events", groupId = "event-group")
-    public void consume(Event event) {
+    @KafkaListener(topics = "events", groupId = "event-group")
+    public void consume(String message) {
         // 이벤트 처리 로직
+        try {
+            Event event = objectMapper.readValue(message, Event.class);
 
-        // 이벤트 저장
-        saveEvent(event);
+            // 이벤트 저장
+            saveEvent(event);
 
-        UserAggregate userAggregate = getUserAggregate(event.getUserId());
-        userAggregate.apply(event);
+            UserAggregate userAggregate = getUserAggregate(event.getUserId());
+            userAggregate.apply(event);
 
-        // 스냅샷 생성 여부 판단 및 생성
-        if (shouldCreateSnapshot(event.getUserId())) {
-            createSnapshot(userAggregate);
+            // 스냅샷 생성 여부 판단 및 생성
+            if (shouldCreateSnapshot(event.getUserId())) {
+                createSnapshot(userAggregate);
 
-            // 스냅샷 및 오래된 이벤트 삭제 처리
-            deleteOldEvents(event.getUserId());
+                // 스냅샷 및 오래된 이벤트 삭제 처리
+                deleteOldEvents(event.getUserId());
+            }
+
+            String s = objectMapper.writeValueAsString(userAggregate);
+
+            eventProducer.produceEvent(s);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -72,7 +84,7 @@ public class EventConsumer {
         }
     }
 
-    private UserAggregate getUserAggregate(String userId) {
+    public UserAggregate getUserAggregate(String userId) {
         Snapshot latestSnapshot = snapshotRepository.findFirstByUserIdOrderByIdDesc(userId);
         UserAggregate userAggregate = new UserAggregate();
         if (latestSnapshot != null) {
