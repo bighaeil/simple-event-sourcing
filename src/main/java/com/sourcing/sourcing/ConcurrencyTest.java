@@ -38,6 +38,5 @@ public class ConcurrencyTest implements CommandLineRunner {
         // 최종 사용자 상태 확인
         UserAggregate userAggregate = userService.getUserAggregate(userId);
         System.out.println("Final username: " + userAggregate.getUsername());
-        System.out.println("Final version: " + userAggregate.getVersion());
     }
 }

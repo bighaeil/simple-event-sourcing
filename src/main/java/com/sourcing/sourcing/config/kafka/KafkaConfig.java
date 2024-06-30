@@ -22,6 +22,7 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
 
+    @Bean
     public ConsumerFactory<String, Event> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
@@ -34,12 +35,14 @@ public class KafkaConfig {
         return new DefaultKafkaConsumerFactory<>(config);
     }
 
+    @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Event> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Event> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
 
+    @Bean
     public ProducerFactory<String, Event> producerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
@@ -48,6 +51,7 @@ public class KafkaConfig {
         return new DefaultKafkaProducerFactory<>(config);
     }
 
+    @Bean
     public KafkaTemplate<String, Event> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }

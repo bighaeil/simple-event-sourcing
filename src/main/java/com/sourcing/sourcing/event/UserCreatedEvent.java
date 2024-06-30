@@ -25,4 +25,3 @@ public class UserCreatedEvent implements Event {
         return userId;
     }
 }
-

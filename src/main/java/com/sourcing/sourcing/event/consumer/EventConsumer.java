@@ -25,22 +25,20 @@ public class EventConsumer {
 
     @KafkaListener(topics = "user-events", groupId = "event-group")
     public void consume(Event event) {
-        try {
-            // 이벤트 저장
-            saveEvent(event);
+        // 이벤트 처리 로직
 
-            UserAggregate userAggregate = getUserAggregate(event.getUserId());
-            userAggregate.apply(event);
+        // 이벤트 저장
+        saveEvent(event);
 
-            // 스냅샷 생성 여부 판단 및 생성
-            if (shouldCreateSnapshot(event.getUserId())) {
-                createSnapshot(userAggregate);
+        UserAggregate userAggregate = getUserAggregate(event.getUserId());
+        userAggregate.apply(event);
 
-                // 스냅샷 및 오래된 이벤트 삭제 처리
-                deleteOldEvents(event.getUserId());
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage());
+        // 스냅샷 생성 여부 판단 및 생성
+        if (shouldCreateSnapshot(event.getUserId())) {
+            createSnapshot(userAggregate);
+
+            // 스냅샷 및 오래된 이벤트 삭제 처리
+            deleteOldEvents(event.getUserId());
         }
     }
 
