@@ -4,9 +4,13 @@ import com.sourcing.sourcing.event.Event;
 import com.sourcing.sourcing.event.UserCreatedEvent;
 import com.sourcing.sourcing.event.UserUpdatedEvent;
 import com.sourcing.sourcing.snapshot.Snapshot;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserAggregate {
     private String userId;
     private String username;
