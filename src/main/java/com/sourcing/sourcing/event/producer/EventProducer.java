@@ -11,6 +11,6 @@ public class EventProducer {
     private final KafkaTemplate<String, Event> kafkaTemplate;
 
     public void produceEvent(Event event) {
-        kafkaTemplate.send("events", event.getUserId(), event);
+        kafkaTemplate.send("user-events", event.getUserId(), event);
     }
 }

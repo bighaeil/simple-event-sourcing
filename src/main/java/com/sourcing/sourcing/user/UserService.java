@@ -28,25 +28,14 @@ public class UserService {
 
     @Transactional
     public void createUser(String userId, String username) {
-        long version = getNextVersion(userId);
-        UserCreatedEvent event = new UserCreatedEvent(userId, username, version);
+        UserCreatedEvent event = new UserCreatedEvent(userId, username);
         handleEvent(event);
     }
 
     @Transactional
     public void updateUser(String userId, String newUsername) {
-        long version = getNextVersion(userId);
-        UserUpdatedEvent event = new UserUpdatedEvent(userId, newUsername, version);
+        UserUpdatedEvent event = new UserUpdatedEvent(userId, newUsername);
         handleEvent(event);
-    }
-
-    private long getNextVersion(String userId) {
-        List<EventDocument> events = eventRepository.findByUserId(userId);
-        if (events.isEmpty()) {
-            return 1;
-        } else {
-            return events.get(events.size() - 1).getVersion() + 1;
-        }
     }
 
     private void handleEvent(Event event) {
@@ -54,7 +43,7 @@ public class UserService {
     }
 
     public UserAggregate getUserAggregate(String userId) {
-        Snapshot latestSnapshot = snapshotRepository.findFirstByUserIdOrderByVersionDesc(userId);
+        Snapshot latestSnapshot = snapshotRepository.findFirstByUserIdOrderByIdDesc(userId);
         UserAggregate userAggregate = new UserAggregate();
         if (latestSnapshot != null) {
             userAggregate.restoreFromSnapshot(latestSnapshot);
@@ -63,11 +52,8 @@ public class UserService {
         List<EventDocument> events = eventRepository.findByUserId(userId);
         for (EventDocument eventDoc : events) {
             Event event = deserializeEvent(eventDoc);
-            if (event.getVersion() > userAggregate.getVersion()) {
-                userAggregate.apply(event);
-            }
+            userAggregate.apply(event);
         }
-
         return userAggregate;
     }
 

@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface EventRepository extends MongoRepository<EventDocument, String> {
     List<EventDocument> findByUserId(String userId);
+
+    long countByUserId(String userId);
 }

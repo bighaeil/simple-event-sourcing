@@ -8,13 +8,11 @@ public class UserUpdatedEvent implements Event {
     private final String userId;
     @Getter
     private final String newUsername;
-    private final long version;
 
     @JsonCreator
-    public UserUpdatedEvent(@JsonProperty("userId") String userId, @JsonProperty("newUsername") String newUsername, @JsonProperty("version") long version) {
+    public UserUpdatedEvent(@JsonProperty("userId") String userId, @JsonProperty("newUsername") String newUsername) {
         this.userId = userId;
         this.newUsername = newUsername;
-        this.version = version;
     }
 
     @Override
@@ -25,10 +23,5 @@ public class UserUpdatedEvent implements Event {
     @Override
     public String getUserId() {
         return userId;
-    }
-
-    @Override
-    public long getVersion() {
-        return version;
     }
 }

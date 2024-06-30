@@ -1,9 +1,9 @@
 package com.sourcing.sourcing.event.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sourcing.sourcing.event.Event;
 import com.sourcing.sourcing.event.repository.EventDocument;
 import com.sourcing.sourcing.event.repository.EventRepository;
-import com.sourcing.sourcing.event.Event;
 import com.sourcing.sourcing.snapshot.Snapshot;
 import com.sourcing.sourcing.snapshot.SnapshotRepository;
 import com.sourcing.sourcing.user.UserAggregate;
@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,32 +23,41 @@ public class EventConsumer {
     private final SnapshotRepository snapshotRepository;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "events", groupId = "event-group")
-    @Transactional
+    @KafkaListener(topics = "user-events", groupId = "event-group")
     public void consume(Event event) {
         try {
             // 이벤트 저장
             saveEvent(event);
 
-            // 스냅샷 및 오래된 이벤트 삭제 처리
             UserAggregate userAggregate = getUserAggregate(event.getUserId());
             userAggregate.apply(event);
 
-            if (userAggregate.getVersion() % 10 == 0) {
-                Snapshot snapshot = userAggregate.createSnapshot();
-                snapshotRepository.save(snapshot);
-                deleteOldEvents(event.getUserId(), userAggregate.getVersion());
+            // 스냅샷 생성 여부 판단 및 생성
+            if (shouldCreateSnapshot(event.getUserId())) {
+                createSnapshot(userAggregate);
+
+                // 스냅샷 및 오래된 이벤트 삭제 처리
+                deleteOldEvents(event.getUserId());
             }
         } catch (Exception e) {
             log.error(e.getMessage());
         }
     }
 
+    private boolean shouldCreateSnapshot(String userId) {
+        long count = eventRepository.countByUserId(userId);
+        return count >= 10;
+    }
+
+    private void createSnapshot(UserAggregate userAggregate) {
+        Snapshot snapshot = userAggregate.createSnapshot();
+        snapshotRepository.save(snapshot);
+    }
+
     private void saveEvent(Event event) {
         EventDocument eventDocument = new EventDocument();
         eventDocument.setUserId(event.getUserId());
         eventDocument.setType(event.getType());
-        eventDocument.setVersion(event.getVersion());
         try {
             eventDocument.setData(objectMapper.writeValueAsString(event));
         } catch (IOException e) {
@@ -58,18 +66,16 @@ public class EventConsumer {
         eventRepository.save(eventDocument);
     }
 
-    private void deleteOldEvents(String userId, long version) {
+    private void deleteOldEvents(String userId) {
         List<EventDocument> oldEvents = eventRepository.findByUserId(userId);
         for (EventDocument eventDoc : oldEvents) {
-            if (eventDoc.getVersion() <= version - 10) {
-                System.out.println("Deleting event with version: " + eventDoc.getVersion());
-                eventRepository.delete(eventDoc);
-            }
+            System.out.println("Deleting event with version: " + eventDoc.getId());
+            eventRepository.delete(eventDoc);
         }
     }
 
     private UserAggregate getUserAggregate(String userId) {
-        Snapshot latestSnapshot = snapshotRepository.findFirstByUserIdOrderByVersionDesc(userId);
+        Snapshot latestSnapshot = snapshotRepository.findFirstByUserIdOrderByIdDesc(userId);
         UserAggregate userAggregate = new UserAggregate();
         if (latestSnapshot != null) {
             userAggregate.restoreFromSnapshot(latestSnapshot);
@@ -78,9 +84,7 @@ public class EventConsumer {
         List<EventDocument> events = eventRepository.findByUserId(userId);
         for (EventDocument eventDoc : events) {
             Event event = deserializeEvent(eventDoc);
-            if (event.getVersion() > userAggregate.getVersion()) {
-                userAggregate.apply(event);
-            }
+            userAggregate.apply(event);
         }
         return userAggregate;
     }

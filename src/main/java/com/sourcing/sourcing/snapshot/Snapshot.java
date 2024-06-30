@@ -7,17 +7,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
-@Document(collection = "snapshots")
+@Document(collection = "userSnapshots")
 public class Snapshot {
     @Id
     private String id;
     private String userId;
     private String username;
-    private long version;
 
-    public Snapshot(String userId, String username, long version) {
+    public Snapshot(String userId, String username) {
         this.userId = userId;
         this.username = username;
-        this.version = version;
     }
 }

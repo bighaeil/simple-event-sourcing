@@ -10,8 +10,8 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public void createUser(@RequestParam String userId, @RequestParam String username) {
-        userService.createUser(userId, username);
+    public void createUser(@RequestBody CreateUserRequest request) {
+        userService.createUser(request.getUserId(), request.getUsername());
     }
 
     @PutMapping("/{userId}")

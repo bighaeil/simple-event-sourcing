@@ -14,6 +14,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 })
 public interface Event {
     String getType();
+
     String getUserId();
-    long getVersion();
 }
